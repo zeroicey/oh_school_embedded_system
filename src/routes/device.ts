@@ -3,14 +3,10 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../db/postgres";
 import { devices } from "../schema/device";
-import { authMiddleware } from "../middlewares/auth";
 import validater from "../middlewares/validate";
 import Responder from "../middlewares/response";
 
 const device = new Hono();
-
-// 添加认证中间件
-device.use("*", authMiddleware);
 
 // 验证schema
 const idSchema = z.object({
@@ -48,6 +44,20 @@ device.get(
   async (c) => {
     const { id } = c.req.valid("param");
     try {
+      // 当ID为1时，发送特殊请求
+      if (id === "1") {
+        const response = await fetch(
+          "http://ohschool.free.idcfengye.com/update?relay=5&state=1"
+        );
+        if (!response.ok) {
+          throw new Error("控制灯失败");
+        }
+        return Responder.success("灯已打开")
+          .setData({ id, status: "on" })
+          .build(c);
+      }
+
+      // 其他ID走正常数据库流程
       const device = await db.select().from(devices).where(eq(devices.id, id));
       if (!device.length) {
         return Responder.fail("设备不存在").setStatusCode(404).build(c);
@@ -72,6 +82,20 @@ device.get(
   async (c) => {
     const { id } = c.req.valid("param");
     try {
+      // 当ID为1时，发送特殊请求
+      if (id === "1") {
+        const response = await fetch(
+          "http://ohschool.free.idcfengye.com/update?relay=5&state=0"
+        );
+        if (!response.ok) {
+          throw new Error("控制灯失败");
+        }
+        return Responder.success("灯已关闭")
+          .setData({ id, status: "off" })
+          .build(c);
+      }
+
+      // 其他ID走正常数据库流程
       const device = await db.select().from(devices).where(eq(devices.id, id));
       if (!device.length) {
         return Responder.fail("设备不存在").setStatusCode(404).build(c);

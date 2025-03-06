@@ -4,8 +4,10 @@
     "dev": "bun run --hot src/index.ts"
   },
   "dependencies": {
+    "@types/jsonwebtoken": "^9.0.9",
     "drizzle-orm": "^0.40.0",
     "hono": "^4.7.2",
+    "jsonwebtoken": "^9.0.2",
     "pg": "^8.13.3",
     "zod": "^3.24.2"
   },
